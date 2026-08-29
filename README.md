@@ -76,11 +76,28 @@ A freeform styling board — grab pieces, drag, rotate, and scale them into a
 composed look, then save it to **Saved** (`/fits`) or keep editing. It has a
 built-in fit builder; editing from a saved look deep-links in (`/canvas?edit=<id>`).
 
-### Clip (`/clip`)
-The web clipper. Paste a store URL, pick a crop, and it runs background
-removal (a dedicated `process-bg` edge function) so the single garment PNG is
-cut out and added to your closet with transparent edges. New items insert as
-`pending` and slot into the grid once classified.
+### Clip / Web Search (`/clip`)
+Two ways to add real garments from the internet, both powered by **Serper**
+(Google search):
+
+- **Search the web.** Type what you want (“black bomber jacket”) and pick a
+  brand chip (Bottega, Burberry, Chanel, Gucci, H&M…). The app calls the
+  `search-clothes` edge function, which proxies **Google Shopping** through
+  Serper, so it returns *actual products* — thumbnail, high-res image, price,
+  and the source store — not stock photos. Multi-select a few, and each gets
+  dragged in as a garment. With no key set it degrades to a curated real-photo
+  fallback so the flow never breaks.
+- **Paste a store URL, crop, and clip.** Pull a garment straight off a product
+  page, frame it, and run background removal (a dedicated `process-bg` edge
+  function) so the single garment PNG is cut out and added to your closet with
+  transparent edges.
+
+Either way, new items insert as `pending` and slot into the wardrobe grid once
+an AI classifier categorizes them. There's also a smaller **web-search modal**
+inside the closet itself (Google Images via Serper, `+ clothing white
+background` appended for clean cutouts) that falls back to a demo image set
+when no API key is present. Serper's generous free tier (2,500 searches)
+makes the whole thing run without any paid signup.
 
 ### Planner (`/planner`)
 An outfit **calendar** — a month you navigate with a week strip. Each day
