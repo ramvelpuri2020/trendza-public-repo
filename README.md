@@ -9,8 +9,9 @@ npm run dev
 ```
 
 Pick a wardrobe when it asks (Female / Male), and you're in. Clothes come
-seeded, outfits save to your browser's `localStorage`, and the AI features are
-the real production ones — wired to a live server the moment you add keys.
+seeded, outfits save to your browser's `localStorage`, web search runs live,
+and the AI features (try-on, style analysis) are the real production ones —
+fully working in the **App Store app**, where you log in with your account.
 
 ---
 
@@ -106,6 +107,11 @@ edge function, caches by a content-hash of person + garments so the same look
 never regenerates, invalidates when the base photo changes, generates in the
 background, and polls until it's ready. The UI never blocks while it cooks.
 
+> **Note:** AI try-on previews aren't available in this web demo — they need a
+> real logged-in account (the edge function validates a live session and
+> reads your saved base photo). It's fully working in the **App Store app**,
+> where you log in with your account and it generates on your own closet.
+
 ### Saved (`/fits`)
 Every look you've created — shuffler results, canvas boards, planner picks —
 in one place with previews. Delete or edit straight from here.
@@ -142,7 +148,9 @@ functions validate a *live authenticated user* and read that user's data (base
 photo, saved outfits) from the database — they physically require a real
 account you can log into. So instead of faking an image, the UI honestly says
 "this needs a real account + keys." Web search needs no user context, which is
-why it runs now.
+why it runs now. **Both AI features run live in the App Store app** — that's
+where the real logged-in experience lives, with try-on and style analysis
+generating on your actual wardrobe.
 
 ---
 
