@@ -1,0 +1,1100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ========================================
+     OUTFITGRADER AI DESIGN SYSTEM
+     Dark Purple/Pink Theme
+     ======================================== */
+  
+  :root {
+    /* Primary Brand Colors */
+    --bg-primary: #ffffff;           /* Clean white */
+    --bg-secondary: #f9f9f9;         /* Card backgrounds */
+    --bg-tertiary: #f0f0f0;          /* Hover states */
+    
+    --accent-purple: #8b5cf6;        /* Primary purple */
+    --accent-purple-light: #a78bfa;  /* Light purple */
+    --accent-purple-dark: #7c3aed;   /* Dark purple */
+    
+    --accent-pink: #ec4899;          /* Hot pink */
+    --accent-pink-light: #f472b6;    /* Light pink */
+    
+    --accent-blue: #3b82f6;          /* Info blue */
+    --accent-green: #10b981;         /* Success green */
+    --accent-red: #ef4444;           /* Error red */
+    --accent-yellow: #fbbf24;        /* Warning yellow */
+    
+    --text-primary: #000000;         /* Black text */
+    --text-secondary: #6b7280;       /* Gray text */
+    --text-muted: #9ca3af;           /* Muted text */
+    
+    --border-color: rgba(0, 0, 0, 0.1);
+    --overlay: rgba(0, 0, 0, 0.8);
+    
+    --radius: 0.5rem;
+
+    /* ========================================
+       WHERING-STYLE DESIGN TOKENS
+       Layered next to the existing purple/pink
+       theme. Existing --primary stays purple;
+       these lime/soft/spring tokens are opt-in
+       via .wh-* classes so legacy UI is untouched.
+       ======================================== */
+
+    /* Toxic lime accent. Used by FAB + selection dash + save toggle. */
+    --wh-accent: #d6ff2b;
+    --wh-accent-ink: #0a0a0a;          /* ink color on lime */
+    --wh-bg: #f2f2f0;                   /* warm-paper app background */
+    --wh-bg-elev: #ffffff;              /* card / surface */
+    --wh-ink: #171717;                  /* primary text on light */
+    --wh-ink-soft: #6b7280;             /* secondary text */
+
+    /* Soft, diffuse shadows (never harsh). */
+    --wh-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.06);
+    --wh-shadow-lift: 0 14px 40px rgba(0, 0, 0, 0.12);
+
+    /* Spring overshoot for CSS transitions (no JS animation library). */
+    --wh-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+
+    /* Shadcn compatibility */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+
+  * {
+    /* Geist first — mirrors the cloned capacitor-app-optimization app
+       which loads it via next/font/google. Inter is intentionally NOT
+       in the fallback chain (unwired @font-face here would dead-letter
+       on Geist CDN failure); we drop straight to the OS native sans
+       stack which is what users in the cloned's fallback see too. */
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont,
+      system-ui, 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* ========================================
+     NATIVE SHELL LOCK — Tier 1 of the
+     "make this Capacitor app feel native" refactor.
+     html/body must NOT scroll. Only inner feeds
+     (closet grid, shuffler rows, modals) may scroll.
+     position:fixed on the body breaks iOS WebView's
+     rubber-band bounce; overscroll-behavior-y:none
+     is belt-and-braces. `touch-action: manipulation`
+     on the root kills the 300ms double-tap-to-zoom
+     delay AND any pull-to-refresh gesture. Without
+     it, the body would still rubber-band even with
+     `overflow:hidden` because iOS Safari treats the
+     whole document as a scroll container until told
+     otherwise. Use `touch-action: pan-y` on inner
+     scrollable elements (the .app-shell-scroll
+     utility below).
+     ======================================== */
+  html,
+  body {
+    overflow: hidden;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* Root background must be white (not dark) — this fills the area
+       OUTSIDE the app content (the safe-area bezel on notched devices,
+       letterbox margins on desktop, etc.). The app content area uses
+       its own bg-background. The inline <style> in index.html also
+       sets this; it's repeated here in the loaded CSS for redundancy
+       since the @layer base can otherwise override it. */
+    background-color: #ffffff;
+    /* dvh fallback: on iOS 15.4+ the dynamic viewport height unit prevents
+       the "keyboard squish" where WebKit shrinks 100vh when the native
+       keyboard is visible. 100dvh stays locked to the full-screen height
+       regardless of the keyboard overlay. */
+    height: 100dvh;
+    overscroll-behavior-y: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  /* Propagate height through the React mount point so
+     `h-full` works for the dashboard (Index.tsx) and any
+     other view that wants to fill the locked viewport. */
+  #root,
+  #root > div {
+    height: 100%;
+  }
+  /* Inner scrollable wrappers opt back into pan-y. */
+  .app-shell-scroll,
+  .app-shell-scroll * {
+    touch-action: pan-y;
+  }
+
+  /* Page scroll escape hatch. Wrap any route whose
+     contents can't fit a `flex:1` parent in a flex
+     column with this on the outer wrapper. Inner
+     scroll behavior is preserved; outer doesn't
+     bounce. Used by Auth.tsx + Profile.tsx. */
+  .app-shell-scroll {
+    position: static;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide webkit scrollbars globally — the purple 8px
+     scrollbar painted by the legacy ::-webkit-scrollbar
+     rule below is what users see as "scroll bars up and
+     down". Components that legitimately need a scrollbar
+     can opt back in via .show-scrollbar. */
+  ::-webkit-scrollbar {
+    display: none !important;
+    width: 0;
+    height: 0;
+  }
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .show-scrollbar::-webkit-scrollbar {
+    display: block !important;
+    width: 6px;
+    height: 6px;
+  }
+  .show-scrollbar {
+    scrollbar-width: thin;
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    outline: 2px solid var(--accent-purple);
+    outline-offset: 2px;
+  }
+
+  /* Global keyboard-focus ring for interactive elements.
+   * The codebase globally strips `-webkit-tap-highlight-color: transparent`
+   * on buttons, so on iOS WebView and Safari the native blue tap halo is
+   * gone — keyboard / switch-control users effectively tap blind. This rule
+   * tightens the global `*:focus-visible` rule above so the ring stays
+   * visible against the many `bg-black` CTAs in this app (using
+   * var(--accent-purple) which reads on both light + dark surfaces).
+   * Excludes [role="tab"] so we don't fight Radix's own
+   * data-[state=active]:focus styling on TabsTrigger.
+   */
+  button:focus-visible:not(:disabled):not([role="tab"]),
+  [role="button"]:focus-visible:not(:disabled) {
+    outline: 3px solid var(--accent-purple);
+    outline-offset: 3px;
+  }
+  a:focus-visible {
+    outline: 3px solid var(--accent-purple);
+    outline-offset: 2px;
+  }
+
+  /* Selection styles */
+  ::selection {
+    background: var(--accent-purple);
+    color: white;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  @media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+}
+
+@layer components {
+  /* ========================================
+     OUTFITGRADER AI DESIGN SYSTEM COMPONENTS
+     ======================================== */
+  
+  /* Card Components */
+  .card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .card-interactive {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+  }
+
+  /* Primary Buttons */
+  .btn-primary {
+    background: #000000;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 32px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-primary:hover {
+    background: #1f2937;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #9ca3af;
+  }
+
+  /* Secondary Buttons */
+  .btn-secondary {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #000000;
+    border-radius: 12px;
+    padding: 16px 32px;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-height: 56px;
+  }
+
+  .btn-secondary:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+  }
+
+  /* Ghost Buttons */
+  .btn-ghost {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  /* Input Components */
+  .input-field {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 16px;
+    color: #000000;
+    font-size: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .input-field:focus {
+    border-color: #000000;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .input-field::placeholder {
+    color: #9ca3af;
+  }
+
+  /* Typography Classes */
+  .text-hero {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .text-title {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .text-heading {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+
+  .text-subheading {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .text-body {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .text-caption {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+
+  /* Layout Components */
+  .container-mobile {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    max-width: 428px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    position: relative;
+  }
+
+  .section-spacing {
+    margin-bottom: 32px;
+  }
+
+  /* Loading States */
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--bg-tertiary);
+    border-top: 2px solid var(--accent-purple);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-tertiary) 50%, var(--bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 8px;
+  }
+
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Progress Indicator */
+  .progress-bar {
+    width: 100%;
+    height: 2px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #000000;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  /* Back Button */
+  .back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #000000;
+    transition: background-color 0.2s;
+  }
+
+  .back-button:hover {
+    background: #f3f4f6;
+  }
+
+  /* Option Cards for Onboarding */
+  .option-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.15s;
+    cursor: pointer;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .option-card:hover {
+    background: #ffffff;
+    border-color: #d1d5db;
+  }
+
+  .option-card.selected {
+    background: #ffffff;
+    border: 2px solid #000000;
+    color: #000000;
+  }
+
+  .option-card .emoji {
+    font-size: 24px;
+    flex-shrink: 0;
+    color: #6b7280;
+  }
+
+  .option-card.selected .emoji {
+    color: #000000;
+  }
+
+  .option-card .text {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: #000000;
+  }
+
+  /* ========================================
+     GRADIENT UTILITIES - REMOVED FOR CLEAN MONOCHROME DESIGN
+     ======================================== */
+
+  /* ========================================
+     SPINNER
+     ======================================== */
+  
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top: 2px solid #000000;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@layer utilities {
+  /* ========================================
+     APP SHELL LAYOUT PRIMITIVES
+     iOS-native safe-area aware spacing tokens
+     used consistently by every screen so the
+     bottom tab bar + FAB never collide with
+     content or with each other.
+     ======================================== */
+  .nav-height {
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Bottom padding for page content so it
+   * never slips under the bottom tab bar. */
+  .pb-nav {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Bottom padding for page content that sits
+   * behind a 56px Floating Action Button (FAB):
+   * nav bar (64px) + safe area + FAB-height gap (56px).
+   * The FAB itself is positioned 20px above the nav top
+   * via inline style in ScanView, so this padding just
+   * has to clear the FAB, not the whole nav+FAB column. */
+  .pb-nav-fab {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 56px);
+  }
+  /* Top padding for content under the iOS status bar
+   * / Dynamic Island. Renamed from `pt-safe` to avoid
+   * a future collision with tailwindcss-safe-area plugin. */
+  .pt-status-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  /* Bottom safe-area padding with no nav bar. */
+  .pb-status-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* Custom utilities for OutfitGrader AI */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes scaleIn {
+    from { 
+      opacity: 0; 
+      transform: scale(0.95); 
+    }
+    to { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+  }
+
+  /* Touch-friendly sizing */
+  .touch-size {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better focus styles */
+  .focus-visible {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+  }
+
+  /* Prevent text selection */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Hardware acceleration */
+  .gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Dynamic viewport height - iOS compatible */
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: -webkit-fill-available; /* iOS Safari fallback */
+    min-height: 100dvh; /* Modern browsers */
+  }
+
+  .h-screen-safe {
+    height: 100vh;
+    height: -webkit-fill-available; /* iOS Safari fallback */
+    height: 100dvh; /* Modern browsers */
+  }
+  
+  /* Comprehensive safe area support for ALL iOS versions */
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-area-inset-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  .safe-area-inset-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  
+  .safe-area-insets {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  
+  /* Full screen safe area container.
+     min-height semantics preserved for components outside the
+     onboarding fixed-body chain that rely on it as a floor.
+     Onboarding steps add `h-full` (height:100%) on top so the
+     container is strictly bounded to the parent height and the
+     mt-auto Continue button never escapes the viewport. */
+  .screen-safe {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* ========================================
+     CROSS-iOS VERSION COMPATIBILITY
+     Maintains consistent quality on iPhone 10-14+
+     ======================================== */
+  
+  /* Image quality optimization for all devices */
+  img, video {
+    image-rendering: -webkit-optimize-contrast;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* Force subpixel rendering for better quality on older iOS */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Fix blurry rendering on older iOS versions */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    * {
+      -webkit-font-smoothing: subpixel-antialiased;
+    }
+    
+    img {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+  }
+  
+  /* iOS-feel active-state feedback for plain (non-motion) buttons.
+   * Use the `.ios-press` utility class explicitly on elements that
+   * need it. framer-motion's `whileTap` already provides its own
+   * press transform for every <motion.button> in the codebase, so
+   * we intentionally do NOT add a global `:active` transform — it
+   * would double up with framer-motion's JS-driven transform on
+   * every motion button (ClosetView tabs, FitsTab, etc.) and the
+   * two would cancel, jitter, or land on the wrong scale. */
+  button.ios-press:not(:disabled):active,
+  [role="button"].ios-press:not([aria-disabled="true"]):active {
+    transform: scale(0.97);
+    transition: transform 120ms ease-out;
+  }
+
+  /* Prevent layout shifts and improve rendering */
+  button, a, input, select, textarea {
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
+  /* Ensure consistent rendering across all iOS Safari versions */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific optimizations */
+    body {
+      -webkit-text-size-adjust: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Better canvas/image rendering */
+    canvas, img, video {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    
+    /* Prevent font rendering issues */
+    * {
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+  }
+  
+  /* Fix for older iOS versions (10-12) */
+  @media screen and (-webkit-min-device-pixel-ratio: 2) {
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    body {
+      -webkit-font-smoothing: antialiased;
+    }
+  }
+  
+  /* Comprehensive safe area fixes for ALL iOS devices */
+  @supports (padding: max(0px)) {
+    body {
+      /* Safe area insets for notch/Dynamic Island (iPhone X+) */
+      padding-left: max(0px, env(safe-area-inset-left));
+      padding-right: max(0px, env(safe-area-inset-right));
+      padding-top: max(0px, env(safe-area-inset-top));
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+      /* Body fill color stays white inside safe area padding so the
+         bezel around notched devices is white, not black. */
+      background-color: #ffffff;
+    }
+  }
+  
+  /* Fallback for older iOS versions without safe-area-inset support */
+  @supports not (padding: env(safe-area-inset-top)) {
+    /* iPhone 8 and older - no notch, standard status bar */
+    body {
+      padding-top: 20px; /* Standard status bar height */
+    }
+    
+    @media screen and (max-width: 375px) {
+      body {
+        padding-top: 20px;
+      }
+    }
+  }
+  
+  /* Fix for Dynamic Island (iPhone 14 Pro+) */
+  @supports (padding: env(safe-area-inset-top)) {
+    /* Ensure content doesn't overlap Dynamic Island */
+    .has-dynamic-island {
+      padding-top: max(47px, env(safe-area-inset-top));
+    }
+  }
+  
+  /* Landscape orientation fixes */
+  @media screen and (orientation: landscape) {
+    body {
+      padding-left: max(0px, env(safe-area-inset-left));
+      padding-right: max(0px, env(safe-area-inset-right));
+    }
+  }
+
+  /* ============================================================
+     WHERING PROTOTYPE — scoped theme + utilities.
+     The cloned repo (capacitor-app-optimization) ships a complete
+     shadcn-vars palette tuned for a light "warm paper" background
+     with a lime primary. trendza's :root is a dark palette, so we
+     re-scope those same shadcn tokens under `.whering-theme` so the
+     WheringPage phone-frame inherits the cloned look without
+     affecting the rest of the app.
+     ============================================================ */
+
+  /*
+   * SCOPE CONTRACT — `.whering-theme` only overrides shadcn tokens for
+   * elements INSIDE a `<div className="whering-theme">`. Tailwind
+   * utilities like `bg-card` / `text-foreground` used elsewhere in
+   * trendza (ClosetView, FitsView, ScanView, etc.) still resolve to
+   * the dark :root palette. Don't drop this class from the
+   * WheringPage phone-frame wrapper or the cloned look breaks.
+   */
+  .whering-theme {
+    --background: oklch(0.965 0 0);
+    --foreground: oklch(0.16 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.16 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.16 0 0);
+    --primary: oklch(0.93 0.24 124);
+    --primary-foreground: oklch(0.16 0 0);
+    --secondary: oklch(0.94 0 0);
+    --secondary-foreground: oklch(0.16 0 0);
+    --muted: oklch(0.94 0 0);
+    --muted-foreground: oklch(0.5 0 0);
+    --accent: oklch(0.93 0.24 124);
+    --accent-foreground: oklch(0.16 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.9 0 0);
+    --input: oklch(0.9 0 0);
+    --ring: oklch(0.93 0.24 124);
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Aliases: the cloned repo uses `.soft-shadow` / `.lift-shadow`
+     (no wh- prefix). trendza already has `.wh-soft-shadow` /
+     `.wh-lift-shadow` defined below — these map to the same values
+     so verbatim ported components render correctly. */
+  .soft-shadow { box-shadow: var(--wh-shadow-soft); }
+  .lift-shadow { box-shadow: var(--wh-shadow-lift); }
+
+  /* ============================================================
+     WHERING UTILITIES — opt-in by class, no global collateral.
+     The Shuffler / Canvas components scope themselves with
+     `.no-scrollbar`, `.snap-x-center`, `.wh-*` tokens.
+     ============================================================ */
+
+  /* Hide scrollbar but keep momentum scrolling. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* Scroll-snap carousels — one item per swipe, mandatory stop. */
+  .snap-x-center {
+    scroll-snap-type: x mandatory;
+    -webkit-scroll-snap-type: x mandatory;
+  }
+  .snap-item {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    -webkit-scroll-snap-align: center;
+  }
+
+  /* Soft / lift shadow tokens. */
+  .wh-soft-shadow { box-shadow: var(--wh-shadow-soft); }
+  .wh-lift-shadow { box-shadow: var(--wh-shadow-lift); }
+
+  /* Spring transition primitive — CSS-driven overshoot, no JS lib. */
+  .wh-spring        { transition: transform 380ms var(--wh-spring), opacity 380ms var(--wh-spring); }
+  .wh-spring-fast   { transition: transform 220ms var(--wh-spring), opacity 220ms var(--wh-spring); }
+  .wh-press:active  { transform: scale(0.97); }
+
+  /* Warm-paper shell used by Dress Me + Canvas. */
+  .wh-shell {
+    background: var(--wh-bg);
+    color: var(--wh-ink);
+  }
+
+  /* Lime FAB surface — used by existing view-level FABs after restyle. */
+  .wh-fab {
+    background: var(--wh-accent);
+    color: var(--wh-accent-ink);
+    box-shadow: var(--wh-shadow-lift);
+  }
+  .wh-fab:active { transform: scale(0.94); }
+
+  /* Selection outline for canvas items. */
+  .wh-selection-ring {
+    outline: 2px dashed var(--wh-accent);
+    outline-offset: 4px;
+    border-radius: 12px;
+  }
+
+  /* ============================================================
+     DESKTOP LETTERBOX
+     On genuine desktop browser windows (laptop / monitor screens
+     ≥1367px wide) the mobile-first flex drawers, button containers,
+     and grids stretch awkwardly. Wrapping the root in a centered
+     480px column with a soft border + shadow mimics how native
+     iOS apps look when running in "compatibility mode" — same UX,
+     letterboxed, no horizontal scaling artifacts.
+
+     The threshold was raised from `min-width: 1024px` to
+     `min-width: 1367px` so that every real iPad size in either
+     orientation (mini 744/1133, 10th-gen 820/1180, Air 820/1180,
+     Pro 11" 834/1194, Pro 12.9" 1024/1366) falls into the
+     tablet-layout @media block at the end of this file instead
+     of being shrunk into a phone-card. Only actual desktop
+     browser windows get the letterbox now.
+
+     On phones (≤743px) and on iPads in any orientation
+     (744–1366px) we keep the full-bleed layout. The 1366px
+     upper bound matches the widest iPad in landscape; the
+     1px gap to 1367px is intentional so an iPad Pro 12.9"
+     landscape viewport at exactly 1366px does NOT trigger
+     the letterbox.
+     ============================================================ */
+  /* Desktop letterbox threshold moved to ≥1367px so that all real iPad
+     sizes in either orientation (mini 744/1133, 10th-gen 820/1180, Air
+     820/1180, Pro 11" 834/1194, Pro 12.9" 1024/1366) fall into the
+     tablet-layout @media block at the end of this file instead of
+     being shrunk into a phone-card. Only genuine desktop browser
+     windows (1367px+, e.g. laptop screens at 1440×900) get the
+     centered 480px letterbox treatment now. */
+  @media (min-width: 1367px) {
+    html,
+    body {
+      background-color: #ffffff;
+    }
+    /* The phone-frame wrapper. Opt-in surface classes (`.app-content`,
+       `.screen-safe`, `.container-mobile`) get letterboxed on iPad so
+       the app reads as a phone-shaped card instead of a stretched
+       website. RBush renderers + the IndexedDB CacheImage layer are
+       unaffected because they key off pixel dimensions of the rendered
+       DOM, not the device viewport. We intentionally do NOT match
+       Tailwind's `.min-h-screen` / `.min-h-[100dvh]` by name — those
+       classes are deep-nested wrappers that should NOT inherit the
+       phone-frame treatment (only the visible app shell does). */
+    #root > div,
+    .app-content,
+    .screen-safe,
+    .container-mobile {
+      max-width: 480px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      background-color: var(--bg-primary);
+      position: relative;
+      box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.18),
+        0 2px 8px rgba(0, 0, 0, 0.08);
+      border-radius: 28px;
+      /* Removed overflow:hidden — it was clipping the Continue button
+         at the bottom edge of the letterboxed phone frame on iPad.
+         border-radius:28px already clips the visual corners; inner
+         content that legitimately needs clipping (modals, drawers)
+         should use their own overflow:hidden. */
+    }
+    /* Suppress the duplicate-frame effect: the React app already
+       renders inside #root > div which inherits the iPad frame
+       treatment above. Any nested element that ALSO matches one of
+       the opt-in classes (e.g. `.screen-safe` re-applied inside
+       onboarding) should NOT layer a second box-shadow over the
+       outer frame. */
+    .app-content .app-content,
+    .screen-safe .screen-safe,
+    .container-mobile .container-mobile {
+      box-shadow: none;
+      border-radius: 0;
+    }
+  }
+
+  /* ============================================================
+     ONBOARDING CONTINUE-BUTTON SAFE SPACER
+     Adds bottom padding that is always at least 24px but grows to
+     include env(safe-area-inset-bottom) when available. This is
+     self-contained — it does NOT rely on the parent having its own
+     safe-area padding. On Appetize simulators where env() may
+     return 0px, the 24px floor keeps the button visible. On real
+     devices the inset adds the necessary clearance for the home
+     indicator (~34px on notched iPhones, ~20px on iPads).
+     ============================================================ */
+  .pb-safe-button {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ============================================================
+     GLOBAL INPUT VISIBILITY (iOS)
+     Inputs and selects get a 16px font-size floor at <768px via
+     the @media rule in `@layer base`, but on landscape / iPad
+     where the inherited font-size can drop below 16px we reinforce
+     it here so iOS Safari does not auto-zoom the page on focus.
+     ============================================================ */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1rem);
+  }
+}
+
+/* ============================================================
+   iPad / TABLET (744-1366px) — full-width proper tablet layout
+   covering every iPad size in every orientation:
+
+     iPad mini     portrait  744   landscape  1133
+     iPad 10th/Air portrait  820   landscape  1180
+     iPad Pro 11"  portrait  834   landscape  1194
+     iPad Pro 12.9 portrait 1024   landscape  1366
+
+   Scoped via `min-width: 744px AND max-width: 1366px` so this
+   block is PHYSICALLY DISABLED on iPhone (≤743px) and on the
+   ≥1367px desktop-letterbox zone. The selector chains below
+   target specific elements; existing iPhone classNames are
+   never rewritten, and no component file is modified.
+   `!important` is used only inside this scoped block to
+   override inline styles (e.g. the DraggableItem's
+   `width: 220, height: 220` in canvas.tsx) without modifying
+   the component.
+
+   WHY THIS BREAKPOINT EXISTS — iPad in any orientation lands
+   in a broken middle ground: too wide for the phone UI to
+   read as designed (Canvas garment images render small +
+   centered in a sea of whitespace, category row gets clipped
+   mid-tab, bottom nav stretches to the full width with
+   awkwardly wide tab buttons), but not wide enough to trigger
+   the desktop letterbox (which now only kicks in at ≥1367px).
+   This block fills the gap with a proper tablet layout for
+   every iPad size.
+
+   NOTE — the desktop letterbox threshold was moved from
+   `min-width: 1024px` to `min-width: 1367px` (in the
+   `@media` block above) so the iPad Pro 12.9" portrait
+   width of 1024px now correctly falls into this tablet
+   range instead of being shrunk into a 480px phone-card.
+   ============================================================ */
+@media (min-width: 744px) and (max-width: 1366px) {
+  /* 1. Canvas DraggableItem scale-up.
+     The inline `width: 220, height: 220` with `-ml-[110px]
+     -mt-[110px]` centering in canvas.tsx leaves the garment
+     image looking too small at iPad portrait. !important
+     overrides the inline style to upscale to 290px (modest
+     1.32×) with proportional centering offsets. Garments now
+     read as designed-for-iPad-portrait instead of phone-content
+     in more whitespace. The selector `.absolute.left-1\/2.top-1\/2`
+     uniquely matches the DraggableItem inside `.whering-theme`
+     (the canvas toolbar uses `right-3` not `left-1/2`). */
+  .whering-theme .absolute.left-1\/2.top-1\/2 {
+    width: 290px !important;
+    height: 290px !important;
+    margin-left: -145px !important;
+    margin-top: -145px !important;
+  }
+
+  /* 2. Canvas category row wrap.
+     The category row is `no-scrollbar flex gap-1.5 overflow-x-scroll
+     py-2`. At iPad portrait (820px), the total chip width (~800px)
+     overflows the canvas surface width (~788px) by ~14px, clipping
+     the last chip mid-tab. Wrap to multiple rows instead of
+     horizontal-scroll. The `gap-1.5` discriminator scopes this to
+     the category row only (NOT the thumbnail strip which uses
+     `gap-3`). */
+  .whering-theme .no-scrollbar.overflow-x-scroll.gap-1\.5 {
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+    justify-content: center !important;
+  }
+
+  /* 3. Dashboard bottom nav constraint.
+     The dashboard bottom nav at Index.tsx:461 has class
+     `lg:max-w-[480px]` which only applies at ≥1024px. At iPad
+     portrait (820px), the nav stretches to 820px edge-to-edge
+     with 4 tabs at ~205px each — awkward. Cap to 600px so tabs
+     get ~150px each, proportional to the iPhone experience but
+     on a wider screen. The selector `.lg\:max-w-\[480px\].fixed
+     .bottom-0` uniquely matches the dashboard bottom nav (the
+     WheringPage reference's phone-frame nav has different
+     classes, and a >767px iPhone would never see this rule). */
+  .lg\:max-w-\[480px\].fixed.bottom-0 {
+    max-width: 600px !important;
+  }
+}

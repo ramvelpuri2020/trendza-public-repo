@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" style="background: #ffffff;">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <!-- iOS Viewport Configuration - Compatible with ALL iOS versions -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <!-- Status bar style for iOS 7+ — use 'default' (white) instead of 'black-translucent'
+         so the safe-area / status-bar background is white, matching the app's standard
+         background color instead of being black. 'default' gives a light status bar on
+         white background. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Prevent iOS from changing text size -->
+    <meta name="format-detection" content="telephone=no, address=no, email=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>trendza</title>
+    <meta name="description" content="AI-Powered Style Analysis & Recommendations" />
+    <meta name="author" content="Lovable" />
+    <meta property="og:image" content="/og-image.png" />
+
+    <!-- Geist + Geist Mono. The cloned capacitor-app-optimization app
+         loads these via next/font/google which next-self-hosts the WOFF
+         payload. We're on Vite (no next/font) so a <link> to the Google
+         Fonts CDN is the closest equivalent. The cloned's Tailwind v4
+         theme resolves font-sans to `--font-geist-sans`; our .whering-theme
+         root sets `font-family: 'Geist', ...` so both Whering and the rest
+         of trendza inherit the same geometry when Geist loads. If Geist
+         404s (CDN blip), Inter / system sans take over without a flash. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+    />
+    
+    <!-- CRITICAL: Preload essential resources -->
+    <link rel="modulepreload" href="/src/main.tsx" crossorigin="anonymous">
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//jjqwhxamjxsiotnhhqco.supabase.co">
+    <link rel="dns-prefetch" href="//api.studio.nebius.com">
+    
+    <style>
+      /* Reset and base styles - Optimized for ALL iOS versions (11+) */
+      html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      html, body {
+        margin: 0;
+        padding: 0;
+        /* Root background — white, not black. !important is required because the
+           @layer base in index.css also targets html/body and can override inline
+           <style> in some browsers' @layer implementations. This is the nuclear
+           option to ensure NO dark background ever shows through. */
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000;
+        overflow-x: hidden;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        /* Force hardware acceleration for consistent rendering */
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        perspective: 1000;
+        -webkit-perspective: 1000;
+        /* iOS Safe Area Support - Works on iPhone X, 11, 12, 13, 14, 15+ */
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding-left: env(safe-area-inset-left, 0px);
+        padding-right: env(safe-area-inset-right, 0px);
+      }
+      
+      /* Image quality optimization for all iOS versions */
+      img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+        image-rendering: high-quality;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        max-width: 100%;
+        height: auto;
+      }
+      
+      #root {
+        /* Fill the fixed-position body exactly — height:100% propagates the
+           viewport-filling chain from html→body→#root so child flex columns
+           can use h-full without dvh reference mismatches on simulators.
+           Safe-area padding is NOT applied here — body already provides it
+           via position:fixed + padding:env(safe-area-inset-*). */
+        height: 100%;
+        width: 100%;
+        /* Force hardware acceleration */
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        will-change: transform;
+      }
+      
+      /* Optimize for older iOS Safari */
+      @supports (-webkit-touch-callout: none) {
+        body {
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          user-select: none;
+        }
+        
+        /* Better image rendering on older iOS */
+        img {
+          -webkit-transform: translate3d(0, 0, 0);
+          transform: translate3d(0, 0, 0);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root">
+      <!-- App Shell -->
+      <div id="app-shell">
+        <!-- React app will mount here -->
+      </div>
+    </div>
+
+    <!-- Performance monitoring and error suppression -->
+    <script>
+      // CRITICAL: Define browser API globally BEFORE anything else loads
+      (function() {
+        'use strict';
+        
+        // Define browser API fallback on global scope
+        if (typeof window.browser === 'undefined') {
+          if (typeof chrome !== 'undefined') {
+            window.browser = chrome;
+          } else {
+            window.browser = {
+              runtime: {
+                sendMessage: function() { return Promise.resolve(); },
+                onMessage: { addListener: function() {}, removeListener: function() {} }
+              },
+              storage: {
+                local: { 
+                  get: function() { return Promise.resolve({}); }, 
+                  set: function() { return Promise.resolve(); } 
+                }
+              }
+            };
+          }
+        }
+        
+        // Also define on global scope (for extensions that check global)
+        if (typeof browser === 'undefined') {
+          if (typeof chrome !== 'undefined') {
+            self.browser = chrome;
+          } else {
+            self.browser = window.browser;
+          }
+        }
+        
+        // Global error handler to catch and suppress extension errors
+        window.addEventListener('error', function(event) {
+          const errorMsg = event.message || '';
+          const errorSource = event.filename || '';
+          
+          // Suppress browser extension errors
+          if (errorMsg.includes('browser is not defined') ||
+              errorSource.includes('checkPageManual.js') ||
+              errorSource.includes('overlays.js') ||
+              errorSource.includes('content.js') ||
+              errorMsg.includes('checkPageManual') ||
+              errorMsg.includes('overlays') ||
+              errorMsg.includes('content.js')) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+          }
+        }, true); // Use capture phase to catch early
+        
+        // Suppress console errors from browser extensions
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.error = function(...args) {
+          const errorStr = String(args.join(' '));
+          // Filter out browser extension errors and onnxruntime warnings
+          if (errorStr.includes('browser is not defined') || 
+              errorStr.includes('checkPageManual.js') || 
+              errorStr.includes('overlays.js') || 
+              errorStr.includes('content.js') ||
+              errorStr.includes('onnxruntime') ||
+              errorStr.includes('VerifyEachNodeIsAssignedToAnEp')) {
+            return; // Suppress these errors
+          }
+          originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+          const warnStr = String(args.join(' '));
+          // Filter out onnxruntime warnings
+          if (warnStr.includes('onnxruntime') ||
+              warnStr.includes('VerifyEachNodeIsAssignedToAnEp') ||
+              warnStr.includes('powerPreference')) {
+            return; // Suppress these warnings
+          }
+          originalWarn.apply(console, args);
+        };
+      })();
+      
+      // Performance timing
+      window.APP_PERFORMANCE = {
+        startTime: performance.now(),
+        metrics: {},
+        mark: function(label) {
+          this.metrics[label] = performance.now() - this.startTime;
+          console.log(`📊 ${label}: ${this.metrics[label].toFixed(2)}ms`);
+        }
+      };
+      
+      window.APP_PERFORMANCE.mark('html-parsed');
+    </script>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
