@@ -18,18 +18,21 @@ export const IS_DEMO_MODE = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY;
 // ── Demo-mode LIVE SEARCH ────────────────────────────────────────────────
 // In demo mode the wardrobe/closet run offline on localStorage, but web
 // search (search-clothes) and its image proxy hit the REAL edge functions, so
-// reviewers get genuine Google Shopping results with zero setup. This only
-// uses the *publishable* anon key (designed to be embedded in client apps);
-// the secret SERPER / DashScope keys never leave the edge function env.
-// Override with VITE_DEMO_SEARCH_URL / VITE_DEMO_SEARCH_ANON to point
-// elsewhere.
+// reviewers get genuine Google Shopping results. On the hosted Vercel demo
+// these values are supplied privately via Vercel env — they are NOT committed
+// here. For local use, copy `.env.example` to `.env.local` and set
+// VITE_DEMO_SEARCH_URL + VITE_DEMO_SEARCH_ANON to your Supabase project's URL
+// and publishable anon key. Without them, web search shows a friendly
+// "add keys" state and the rest of the demo still runs fully offline.
+//
+// Only the *publishable* anon key is used here (designed to be embedded in
+// client apps); the secret SERPER / DashScope keys never leave the edge
+// function env.
 export const DEMO_SEARCH_URL =
-  (import.meta.env.VITE_DEMO_SEARCH_URL as string | undefined) ??
-  "https://jjqwhxamjxsiotnhhqco.supabase.co";
+  (import.meta.env.VITE_DEMO_SEARCH_URL as string | undefined) ?? "";
 
 export const DEMO_SEARCH_ANON_KEY =
-  (import.meta.env.VITE_DEMO_SEARCH_ANON as string | undefined) ??
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcXdoeGFtanhzaW90bmhocWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgxMDQxNTQsImV4cCI6MjA1MzY4MDE1NH0.4KMTPF3R6-XQCeRVPSuuWibRawzjEtk60RFCQZr2dz0";
+  (import.meta.env.VITE_DEMO_SEARCH_ANON as string | undefined) ?? "";
 
 /** Real edge-function base for demo-mode search calls. */
 export const DEMO_SEARCH_ENDPOINT = `${DEMO_SEARCH_URL}/functions/v1/search-clothes`;

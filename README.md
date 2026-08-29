@@ -54,7 +54,7 @@ four quick actions:
 | Action | What it does | Where it takes you |
 |---|---|---|
 | **Upload Item** | Take / pick a photo and add a piece | `/wardrobe` |
-| **Clip** | Crop a piece out of any shopping page, remove the background | `/clip` |
+| **Clip** | Search the web for real products (live) or crop a store URL, remove the background | `/clip` |
 | **Create Outfit** | Drag pieces around a freeform styling board | `/canvas` |
 | **Plan a Day** | Schedule an outfit on the calendar | `/planner` |
 
@@ -122,20 +122,27 @@ completed onboarding, which the demo seeds for you so you skip the wall.
 
 These are the real edge functions from production — nothing faked:
 
+- **Web search (`search-clothes`)** — proxies **Google Shopping** through the
+  Serper API. This one works **live in the demo** — the hosted link returns
+  genuine products, and locally it activates the moment you set two values in
+  `.env.local` (see `.env.example`). It only uses the publishable anon key;
+  the secret Serper key stays on the server.
 - **Try-on (`generate-tryon`)** — powered by **Qwen Image 2.0** through
   Alibaba's **DashScope** API. It takes your person photo + up to two garment
   images, builds a strict prompt that tells the model exactly *which* regions
-  to change and which to preserve (fit, fabric, pose, background), returns the
-  composite PNG, and re-encodes it to a much smaller JPEG for fast delivery.
+  to keep (face, background, pose) and which to change, returns the composite
+  PNG, and re-encodes it to a much smaller JPEG.
 - **Style analysis (`analyze-style`)** — a **Qwen2.5-VL-72B** vision model that
   reads an outfit photo and returns a grade, breakdown, and tips.
 - **Background removal (`process-bg`)** — cleanly cuts a clipped garment out of
   its product page.
 
-In demo mode (no keys) these show a clear **"needs a real backend"** message
-instead of failing silently. To turn them on, add your Supabase + DashScope
-keys in a `.env.local`, restart the dev server, and the same code hits your
-live functions.
+**Why try-on / analyze show "needs a real backend" in the demo:** those edge
+functions validate a *live authenticated user* and read that user's data (base
+photo, saved outfits) from the database — they physically require a real
+account you can log into. So instead of faking an image, the UI honestly says
+"this needs a real account + keys." Web search needs no user context, which is
+why it runs now.
 
 ---
 
@@ -146,7 +153,9 @@ Forty-plus components talk to the data layer through **one** import,
 
 - **No keys set** → a `localStorage`-backed client (`src/lib/demo/`) mirrors the
   query surface the app already uses (`from().select().eq().order().single()`,
-  auth, storage, `functions.invoke`).
+  auth, storage, `functions.invoke`), **and** it forwards one special call —
+  `search-clothes` — to the real edge function, so web search is genuinely
+  live while everything else runs offline.
 - **Keys set** → the genuine `@supabase/supabase-js` client, JSON-driven, with
   the real AI behind it.
 
@@ -160,7 +169,9 @@ matching wardrobe from your real `demo-wardrobe.ts`.
 ## The engineering I'd love to talk about
 
 - **A backend swapped behind a single import** — real components, two data
-  layers, zero duplicated UI.
+  layers, zero duplicated UI — plus a demo client that routes *one* call
+  (`search-clothes`) to the live edge function so search stays 100% real while
+  the rest of the app runs offline.
 - **The dress-me interaction** — a scroll-snap, haptic-ticked carousel that
   tucks garments together and has to feel like flipping through clothes, not a
   grid.
