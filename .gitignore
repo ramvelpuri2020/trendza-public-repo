@@ -38,3 +38,4 @@ dist-ssr
 # Windows reserved device names (cannot be git-added)
 nul
 NUL
+.vercel

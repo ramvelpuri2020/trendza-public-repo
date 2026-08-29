@@ -16,6 +16,7 @@
 
 import { DemoQuery, seedTableIfEmpty } from "./demoStore";
 import { getDemoItemsForGender } from "../demo-wardrobe";
+import { DEMO_SEARCH_ENDPOINT, DEMO_SEARCH_ANON_KEY } from "../supabase-config";
 
 const AUTH_KEY = "trendza_demo_auth_v1";
 const ONBOARDING_KEY = "trendza_demo_onboarding_v1";
@@ -277,10 +278,40 @@ function demoAssetUrl(path: string): string {
 }
 
 const functions = {
-  invoke: async (fn: string) => {
-    // DEMO STUB. Without a real backend these edge functions can't run. Return
-    // a clearly-flagged "not configured" error the UI treats as a failure, so
-    // the try-on / analyze flow shows a friendly message instead of hanging.
+  invoke: async (fn: string, options?: { body?: unknown }) => {
+    // LIVE SEARCH — proxy `search-clothes` to the real edge function so demo
+    // web search returns genuine Google Shopping results (real products). Uses
+    // the publishable anon key only. Falls back to a "not configured" error if
+    // the endpoint is unreachable.
+    if (fn === "search-clothes") {
+      try {
+        const res = await fetch(DEMO_SEARCH_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: DEMO_SEARCH_ANON_KEY,
+            Authorization: `Bearer ${DEMO_SEARCH_ANON_KEY}`,
+          },
+          body: JSON.stringify(options?.body ?? {}),
+        });
+        if (!res.ok) throw new Error(`search-clothes returned ${res.status}`);
+        const data = await res.json();
+        return { data, error: null };
+      } catch (e: any) {
+        return {
+          data: null,
+          error: {
+            message: e?.message ?? "Search unavailable",
+            name: "SearchError",
+          },
+        };
+      }
+    }
+
+    // DEMO STUB for the paid AI edge functions (try-on, style analysis, bg
+    // removal, classify). These genuinely require a real authenticated backend,
+    // so a clear "not configured" error tells the UI to show a friendly
+    // message instead of hanging.
     return {
       data: null,
       error: {
@@ -290,6 +321,19 @@ const functions = {
     };
   },
 };
+
+/** Browser-friendly image proxy for demo web-search results (gstatic). */
+async function proxyImageUrl(url: string): Promise<Response> {
+  return fetch(DEMO_SEARCH_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: DEMO_SEARCH_ANON_KEY,
+      Authorization: `Bearer ${DEMO_SEARCH_ANON_KEY}`,
+    },
+    body: JSON.stringify({ action: "proxy-image", url }),
+  });
+}
 
 /** Direct query access (used by the adapter/tests). */
 export function demoFrom(table: string): DemoQuery {

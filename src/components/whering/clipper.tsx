@@ -20,7 +20,7 @@ import {
 import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/integrations/supabase/client"
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase-config"
+import { SEARCH_FN_ENDPOINT, SEARCH_FN_KEY } from "@/lib/supabase-config"
 import { useUnifiedBackgroundRemoval } from "@/hooks/useUnifiedBackgroundRemoval"
 import { encodeBlurHashFromImageSource } from "@/lib/image"
 import { toast } from "@/hooks/use-toast"
@@ -130,12 +130,13 @@ const EXAMPLE_QUERIES = [
 async function fetchImageBlob(url: string): Promise<Blob> {
   try {
     const proxyRes = await fetch(
-      `${SUPABASE_URL}/functions/v1/search-clothes`,
+      SEARCH_FN_ENDPOINT,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: SEARCH_FN_KEY,
+          Authorization: `Bearer ${SEARCH_FN_KEY}`,
         },
         body: JSON.stringify({ action: 'proxy-image', url }),
       },
